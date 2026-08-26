@@ -50,6 +50,18 @@ public class FrameParserTest {
         FrameParser.parse(new byte[]{'Q', 'R', 'T'});
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsTruncatedMetadataBody() {
+        // 12 bytes: valid header + nameLen=50, but no body bytes for the name/fileSize/sha256.
+        FrameParser.parse(new byte[]{'Q', 'R', 'T', '1', 1, 0x01, 0, 0, 0, 1, 0, 50});
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsShortDataFrame() {
+        // Exactly 10 bytes (header only, no chunkIndex).
+        FrameParser.parse(new byte[]{'Q', 'R', 'T', '1', 1, 0x02, 0, 0, 0, 1});
+    }
+
     private static byte[] sha256(String s) throws Exception {
         return MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8));
     }
