@@ -1,7 +1,11 @@
 package com.qrtransfer.sender;
 
+import com.qrtransfer.sender.ui.MainFrame;
+
+import javax.swing.*;
+
 public final class Main {
     public static void main(String[] args) {
-        // 在 Task 5 中补全 UI 启动逻辑
+        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
     }
 }
