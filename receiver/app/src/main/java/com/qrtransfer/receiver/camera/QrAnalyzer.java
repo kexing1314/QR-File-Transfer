@@ -13,6 +13,7 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public final class QrAnalyzer implements ImageAnalysis.Analyzer {
     public QrAnalyzer(Listener listener) {
         this.listener = listener;
         Map<DecodeHintType, Object> hints = new HashMap<>();
-        hints.put(DecodeHintType.POSSIBLE_FORMATS, java.util.List.of(BarcodeFormat.QR_CODE));
+        hints.put(DecodeHintType.POSSIBLE_FORMATS, Collections.singletonList(BarcodeFormat.QR_CODE));
         hints.put(DecodeHintType.CHARACTER_SET, "ISO-8859-1");
         reader.setHints(hints);
     }
@@ -53,9 +54,20 @@ public final class QrAnalyzer implements ImageAnalysis.Analyzer {
     }
 
     private byte[] luminance(ImageProxy image) {
-        ByteBuffer buf = image.getPlanes()[0].getBuffer();
-        byte[] data = new byte[buf.remaining()];
-        buf.get(data);
+        ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+        ByteBuffer buf = yPlane.getBuffer();
+        int rowStride = yPlane.getRowStride();
+        int width = image.getWidth();
+        int height = image.getHeight();
+        byte[] data = new byte[width * height];
+        if (rowStride == width) {
+            buf.get(data); // fast path: contiguous, no padding
+        } else {
+            for (int row = 0; row < height; row++) {
+                buf.position(row * rowStride);
+                buf.get(data, row * width, width);
+            }
+        }
         return data;
     }
 }
