@@ -43,8 +43,8 @@ public final class FramePlayer extends JPanel {
     public void stop() { timer.stop(); }
 
     private void advance() {
-        index = (index + 1) % frames.size();
         current = QrRenderer.render(frames.get(index), targetSizePx(), ecLevel);
+        index = (index + 1) % frames.size();
         repaint();
     }
 
