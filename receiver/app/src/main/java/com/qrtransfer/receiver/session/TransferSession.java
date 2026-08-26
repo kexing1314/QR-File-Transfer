@@ -13,6 +13,7 @@ import java.util.Locale;
 public final class TransferSession {
     private final Context context;
     private final Reassembler reassembler = new Reassembler();
+    private boolean completed = false;
 
     public TransferSession(Context context) { this.context = context; }
 
@@ -22,7 +23,8 @@ public final class TransferSession {
         } catch (IllegalArgumentException ignored) {
             return; // 非法帧，忽略
         }
-        if (reassembler.isComplete()) {
+        if (reassembler.isComplete() && !completed) {
+            completed = true;
             complete();
         }
     }
@@ -43,7 +45,8 @@ public final class TransferSession {
             Toast.makeText(context, "校验失败，请重扫", Toast.LENGTH_LONG).show();
             return;
         }
-        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (dir == null) dir = context.getFilesDir();
         File out = new File(dir, sanitize(reassembler.fileName()));
         try (FileOutputStream fos = new FileOutputStream(out)) {
             fos.write(reassembler.assemble());
