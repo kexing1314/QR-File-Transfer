@@ -40,6 +40,15 @@ public class ReassemblerTest {
     }
 
     @Test
+    public void ignoresOutOfRangeOrNegativeChunkIndex() {
+        Reassembler r = new Reassembler();
+        r.accept(Frame.data(2, 5, new byte[]{1, 2, 3})); // chunkIndex 5 >= totalChunks 2
+        r.accept(Frame.data(-1, 0, new byte[]{1}));       // negative totalChunks
+        assertEquals(0, r.receivedChunks());
+        assertFalse(r.isComplete());
+    }
+
+    @Test
     public void verifyFailsOnCorruptData() throws Exception {
         byte[] all = "Hello, QR!".getBytes(StandardCharsets.UTF_8);
         Reassembler r = new Reassembler();

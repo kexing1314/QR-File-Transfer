@@ -14,6 +14,7 @@ public final class Reassembler {
 
     public void accept(Frame f) {
         if (f.kind == Frame.Kind.METADATA) {
+            if (f.totalChunks < 0) return;
             this.totalChunks = f.totalChunks;
             this.fileName = f.fileName;
             this.fileSize = f.fileSize;
@@ -21,6 +22,7 @@ public final class Reassembler {
             if (chunks == null) chunks = new byte[f.totalChunks][];
             else if (chunks.length != f.totalChunks) chunks = new byte[f.totalChunks][];
         } else if (f.kind == Frame.Kind.DATA) {
+            if (f.totalChunks < 0 || f.chunkIndex < 0 || f.chunkIndex >= f.totalChunks) return;
             if (chunks == null || chunks.length != f.totalChunks) chunks = new byte[f.totalChunks][];
             if (chunks[f.chunkIndex] == null) {
                 chunks[f.chunkIndex] = f.data;
