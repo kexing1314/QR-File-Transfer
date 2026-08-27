@@ -552,7 +552,7 @@ class FrameEncoderGoldenTest {
 注意：生成器内部用相对路径 `../protocol/`，因此**必须从 `sender/` 目录运行**（Maven 的 exec:java 以调用 mvn 时所在目录为工作目录）。
 
 Run: `cd sender && mvn -q compile exec:java -Dexec.mainClass=com.qrtransfer.sender.protocol.GoldenFixtureGenerator`
-Expected: 输出 `Wrote N bytes to protocol/hello.frames.bin`，且 `../protocol/hello.frames.bin` 文件已生成（约 10 + 61 + 24 = 95 字节左右）。
+Expected: 输出 `Wrote 85 bytes to protocol/hello.frames.bin`，且 `../protocol/hello.frames.bin` 文件已生成（85 字节 = 61 METADATA + 24 DATA）。
 
 - [ ] **Step 10: 运行 golden 测试确认编码器输出与 fixture 一致**
 
@@ -590,6 +590,7 @@ git commit -m "feat(sender): add FrameEncoder and golden fixture"
 package com.qrtransfer.sender.render;
 
 import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.qrtransfer.sender.protocol.FrameEncoder;
