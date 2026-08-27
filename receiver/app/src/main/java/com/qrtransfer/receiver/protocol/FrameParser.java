@@ -20,7 +20,7 @@ public final class FrameParser {
         int type = b[5] & 0xFF;
         if (type == TYPE_METADATA) {
             if (b.length < 12) throw new IllegalArgumentException("metadata frame too short: " + b.length);
-            int nameLen = Short.toUnsignedInt(ByteBuffer.wrap(b, 10, 2).order(ByteOrder.BIG_ENDIAN).getShort());
+            int nameLen = ((int) ByteBuffer.wrap(b, 10, 2).order(ByteOrder.BIG_ENDIAN).getShort()) & 0xFFFF;
             int off = 12 + nameLen;
             if (off + 8 + 32 > b.length) throw new IllegalArgumentException("metadata frame truncated: " + b.length);
             String fileName = new String(b, 12, nameLen, StandardCharsets.UTF_8);
