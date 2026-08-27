@@ -18,7 +18,7 @@ public final class QrRenderer {
         Map<EncodeHintType, Object> hints = Map.of(
                 EncodeHintType.CHARACTER_SET, "ISO-8859-1",
                 EncodeHintType.ERROR_CORRECTION, ecLevel,
-                EncodeHintType.MARGIN, 2);
+                EncodeHintType.MARGIN, 4);
         try {
             BitMatrix matrix = new QRCodeWriter().encode(contents, BarcodeFormat.QR_CODE, sizePx, sizePx, hints);
             BufferedImage img = new BufferedImage(sizePx, sizePx, BufferedImage.TYPE_INT_RGB);
