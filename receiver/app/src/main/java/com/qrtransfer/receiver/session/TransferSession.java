@@ -2,7 +2,6 @@ package com.qrtransfer.receiver.session;
 
 import android.content.Context;
 import android.os.Environment;
-import android.widget.Toast;
 
 import com.qrtransfer.receiver.protocol.Reassembler;
 
@@ -11,11 +10,21 @@ import java.io.FileOutputStream;
 import java.util.Locale;
 
 public final class TransferSession {
+
+    public interface Listener {
+        void onFileSaved(File file);
+        void onSaveError(String message);
+    }
+
     private final Context context;
+    private final Listener listener;
     private final Reassembler reassembler = new Reassembler();
     private boolean completed = false;
 
-    public TransferSession(Context context) { this.context = context; }
+    public TransferSession(Context context, Listener listener) {
+        this.context = context;
+        this.listener = listener;
+    }
 
     public void onFrame(byte[] frameBytes) {
         try {
@@ -40,9 +49,17 @@ public final class TransferSession {
         return (int) (100L * reassembler.receivedChunks() / total);
     }
 
+    public boolean hasMetadata() {
+        return reassembler.totalChunks() >= 0;
+    }
+
+    public java.util.List<Integer> missingChunks() {
+        return reassembler.missingChunks();
+    }
+
     private void complete() {
         if (!reassembler.verify()) {
-            Toast.makeText(context, "校验失败，请重扫", Toast.LENGTH_LONG).show();
+            listener.onSaveError("校验失败，请重扫");
             return;
         }
         File dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
@@ -50,9 +67,9 @@ public final class TransferSession {
         File out = new File(dir, sanitize(reassembler.fileName()));
         try (FileOutputStream fos = new FileOutputStream(out)) {
             fos.write(reassembler.assemble());
-            Toast.makeText(context, "已保存: " + out.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            listener.onFileSaved(out);
         } catch (Exception e) {
-            Toast.makeText(context, "写入失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            listener.onSaveError("写入失败: " + e.getMessage());
         }
     }
 

@@ -1,39 +1,37 @@
+# ==== Java / Maven ====
 target/
+*.class
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-.kotlin
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# ==== Android / Gradle ====
+.gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
 
-### VS Code ###
+# ==== IDE ====
+.idea/
+*.iml
+*.iws
+*.ipr
 .vscode/
+.classpath
+.project
+.settings/
+.factorypath
+out/
 
-### Mac OS ###
+# ==== OS ====
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# ==== 本项目临时文件 ====
+.superpowers/

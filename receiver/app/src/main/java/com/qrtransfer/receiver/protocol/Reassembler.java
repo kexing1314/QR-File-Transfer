@@ -3,6 +3,8 @@ package com.qrtransfer.receiver.protocol;
 import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Reassembler {
     private int totalChunks = -1;
@@ -55,4 +57,14 @@ public final class Reassembler {
     public String fileName() { return fileName; }
     public int receivedChunks() { return received; }
     public int totalChunks() { return totalChunks; }
+
+    public List<Integer> missingChunks() {
+        List<Integer> missing = new ArrayList<>();
+        if (chunks != null) {
+            for (int i = 0; i < chunks.length; i++) {
+                if (chunks[i] == null) missing.add(i);
+            }
+        }
+        return missing;
+    }
 }

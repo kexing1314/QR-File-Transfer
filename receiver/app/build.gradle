@@ -31,3 +31,13 @@ dependencies {
     implementation 'com.google.zxing:core:3.5.3'
     testImplementation 'junit:junit:4.13.2'
 }
+
+// 对齐传递依赖引入的 Kotlin stdlib 版本，消除 kotlin-stdlib 与
+// 旧版 kotlin-stdlib-jdk7/jdk8 之间的 duplicate class 冲突。
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+    }
+}

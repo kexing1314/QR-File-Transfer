@@ -13,15 +13,14 @@ import java.util.List;
 
 public final class FramePlayer extends JPanel {
     private final List<byte[]> frames;
-    private final int frameIntervalMs;
     private final ErrorCorrectionLevel ecLevel;
     private final Timer timer;
     private BufferedImage current;
     private int index = 0;
+    private double sizeScale = 1.0;
 
     public FramePlayer(ChunkedFile cf, int frameIntervalMs, ErrorCorrectionLevel ecLevel) {
         this.frames = buildFrames(cf);
-        this.frameIntervalMs = frameIntervalMs;
         this.ecLevel = ecLevel;
         this.timer = new Timer(frameIntervalMs, e -> advance());
         setBackground(Color.WHITE);
@@ -38,18 +37,57 @@ public final class FramePlayer extends JPanel {
 
     public int totalFrames() { return frames.size(); }
     public int currentFrameIndex() { return index; }
+    public int chunkCount() { return frames.size() - 1; }
+
+    public String currentLabel() {
+        return index == 0 ? "元数据" : "块 " + (index - 1);
+    }
 
     public void start() { if (!timer.isRunning()) timer.start(); }
     public void stop() { timer.stop(); }
 
-    private void advance() {
+    // 传输中动态改帧率（毫秒间隔）
+    public void setFrameIntervalMs(int ms) {
+        boolean running = timer.isRunning();
+        timer.stop();
+        timer.setDelay(ms);
+        if (running) timer.start();
+    }
+
+    // 传输中动态改二维码显示尺寸（0.1 ~ 1.0，占面板比例）
+    public void setSizeScale(double scale) {
+        this.sizeScale = Math.max(0.1, Math.min(1.0, scale));
+        if (current != null) renderCurrent();
+    }
+
+    // 显示元数据帧（frames[0]）
+    public void showMetadata() {
+        stop();
+        index = 0;
+        renderCurrent();
+    }
+
+    // 显示指定数据块（chunkIndex 从 0 开始）
+    public void showChunk(int chunkIndex) {
+        stop();
+        int frameIndex = chunkIndex + 1;
+        if (frameIndex < 0 || frameIndex >= frames.size()) return;
+        index = frameIndex;
+        renderCurrent();
+    }
+
+    private void renderCurrent() {
         current = QrRenderer.render(frames.get(index), targetSizePx(), ecLevel);
-        index = (index + 1) % frames.size();
         repaint();
     }
 
+    private void advance() {
+        renderCurrent();
+        index = (index + 1) % frames.size();
+    }
+
     private int targetSizePx() {
-        return Math.max(64, Math.min(getWidth(), getHeight()));
+        return Math.max(64, (int) (Math.min(getWidth(), getHeight()) * sizeScale));
     }
 
     @Override
