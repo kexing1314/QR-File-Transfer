@@ -27,6 +27,7 @@ public final class FramePlayer extends JPanel {
         this.ecLevel = ecLevel;
         this.timer = new Timer(frameIntervalMs, e -> advance());
         setBackground(Color.WHITE);
+        renderCurrent();
     }
 
     private static List<byte[]> buildFrames(ChunkedFile cf) {
@@ -110,8 +111,8 @@ public final class FramePlayer extends JPanel {
 
     private void advance() {
         manualChunk = -1;
-        renderCurrent();
         screen = (screen + 1) % screenCount();
+        renderCurrent();
     }
 
     private int targetSizePx() {
