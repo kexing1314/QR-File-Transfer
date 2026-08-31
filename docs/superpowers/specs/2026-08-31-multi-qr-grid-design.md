@@ -87,7 +87,7 @@
 | 保持不变 | `luminance()`（含 rowStride）、Y 平面提取、`DecodeHintType` 集合（仅 QR + ISO-8859-1）、异常吞掉 |
 | 明确不加 | `PURE_BARCODE`（已实验：跳过定位导致真实画面解不出，回退）；`TRY_HARDER` 暂不加（观望） |
 
-`MainActivity` 无需改动（1080p 分辨率已在生效）；`TransferSession` 的 `onFrame` 天然支持连续喂多个块。
+`MainActivity` 需设 `setTargetResolution(new Size(1920, 1080))`（本分支已含此改动；否则默认 640×480 在网格下每块模块过少、扫不动）；`TransferSession` 的 `onFrame` 天然支持连续喂多个块。
 
 ### 5.2 横竖屏适配（接收端）
 
