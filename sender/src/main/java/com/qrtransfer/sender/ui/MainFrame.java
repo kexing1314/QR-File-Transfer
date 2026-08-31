@@ -37,7 +37,7 @@ public final class MainFrame extends JFrame {
         settings.add(new JLabel("块大小:"), gbc);
         gbc.gridx = 1;
         settings.add(chunkSizeBox, gbc);
-        chunkSizeBox.setSelectedItem(512);
+        chunkSizeBox.setSelectedItem(256);
 
         gbc.gridx = 0; gbc.gridy = 1;
         settings.add(new JLabel("帧率:"), gbc);
@@ -103,16 +103,25 @@ public final class MainFrame extends JFrame {
         status.setFont(status.getFont().deriveFont(Font.BOLD, 14f));
         JButton startStop = new JButton("开始");
 
-        // 传输控制行：帧率 + 尺寸（可随时改）
+        // 传输控制行：帧率 + 尺寸 + 张数 + 排列（可随时改）
         JPanel transmission = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         transmission.setBorder(BorderFactory.createTitledBorder("传输控制"));
         JComboBox<Integer> liveFpsBox = new JComboBox<>(new Integer[]{2, 3, 4, 5, 8, 10, 15});
         liveFpsBox.setSelectedItem(fps);
         JSlider sizeSlider = new JSlider(20, 100, 100);
+        JComboBox<Integer> gridSizeBox = new JComboBox<>(new Integer[]{2, 4});
+        gridSizeBox.setSelectedItem(4);
+        JComboBox<GridArrangement> layoutBox = new JComboBox<>(
+                new GridArrangement[]{GridArrangement.HORIZONTAL, GridArrangement.VERTICAL, GridArrangement.SQUARE});
+        layoutBox.setSelectedItem(GridArrangement.SQUARE);
         transmission.add(new JLabel("帧率:"));
         transmission.add(liveFpsBox);
         transmission.add(new JLabel("尺寸:"));
         transmission.add(sizeSlider);
+        transmission.add(new JLabel("张数:"));
+        transmission.add(gridSizeBox);
+        transmission.add(new JLabel("排列:"));
+        transmission.add(layoutBox);
 
         JPanel manual = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         manual.setBorder(BorderFactory.createTitledBorder("手动补漏"));
@@ -159,6 +168,8 @@ public final class MainFrame extends JFrame {
             player.setFrameIntervalMs(1000 / newFps);
         });
         sizeSlider.addChangeListener(e -> player.setSizeScale(sizeSlider.getValue() / 100.0));
+        gridSizeBox.addActionListener(e -> player.setGridSize((Integer) gridSizeBox.getSelectedItem()));
+        layoutBox.addActionListener(e -> player.setArrangement((GridArrangement) layoutBox.getSelectedItem()));
 
         startStop.addActionListener(e -> {
             if (startStop.getText().equals("开始")) {
@@ -170,7 +181,7 @@ public final class MainFrame extends JFrame {
             }
         });
         new Timer(250, e -> status.setText(
-                "当前: " + player.currentLabel() + " / 共 " + player.totalFrames() + " 张"))
+                "当前: " + player.currentLabel() + " / 共 " + player.screenCount() + " 屏"))
                 .start();
         playerFrame.setVisible(true);
     }
