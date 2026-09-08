@@ -109,11 +109,12 @@ public final class MainFrame extends JFrame {
         JComboBox<Integer> liveFpsBox = new JComboBox<>(new Integer[]{2, 3, 4, 5, 8, 10, 15});
         liveFpsBox.setSelectedItem(fps);
         JSlider sizeSlider = new JSlider(20, 100, 100);
-        JComboBox<Integer> gridSizeBox = new JComboBox<>(new Integer[]{2, 4});
+        JComboBox<Integer> gridSizeBox = new JComboBox<>(new Integer[]{2, 4, 6});
         gridSizeBox.setSelectedItem(4);
         JComboBox<GridArrangement> layoutBox = new JComboBox<>(
-                new GridArrangement[]{GridArrangement.HORIZONTAL, GridArrangement.VERTICAL, GridArrangement.SQUARE});
-        layoutBox.setSelectedItem(GridArrangement.SQUARE);
+                new GridArrangement[]{GridArrangement.HORIZONTAL, GridArrangement.VERTICAL});
+        layoutBox.setSelectedItem(GridArrangement.HORIZONTAL);
+        layoutBox.setEnabled(false);   // 4/6 张固定方阵，排列不可选
         transmission.add(new JLabel("帧率:"));
         transmission.add(liveFpsBox);
         transmission.add(new JLabel("尺寸:"));
@@ -168,7 +169,17 @@ public final class MainFrame extends JFrame {
             player.setFrameIntervalMs(1000 / newFps);
         });
         sizeSlider.addChangeListener(e -> player.setSizeScale(sizeSlider.getValue() / 100.0));
-        gridSizeBox.addActionListener(e -> player.setGridSize((Integer) gridSizeBox.getSelectedItem()));
+        gridSizeBox.addActionListener(e -> {
+            int g = (Integer) gridSizeBox.getSelectedItem();
+            player.setGridSize(g);
+            if (g == 2) {
+                layoutBox.setEnabled(true);
+                player.setArrangement((GridArrangement) layoutBox.getSelectedItem());
+            } else {   // 4 或 6：固定方阵
+                player.setArrangement(GridArrangement.SQUARE);
+                layoutBox.setEnabled(false);
+            }
+        });
         layoutBox.addActionListener(e -> player.setArrangement((GridArrangement) layoutBox.getSelectedItem()));
 
         startStop.addActionListener(e -> {

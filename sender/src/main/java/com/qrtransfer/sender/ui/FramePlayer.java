@@ -7,6 +7,8 @@ import com.qrtransfer.sender.render.QrRenderer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,13 @@ public final class FramePlayer extends JPanel {
         this.ecLevel = ecLevel;
         this.timer = new Timer(frameIntervalMs, e -> advance());
         setBackground(Color.WHITE);
+        // 面板被真正布局/放大后，重新按正确尺寸渲染（构造函数时尺寸还是 0，会落到 64px 下限）
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                renderCurrent();
+            }
+        });
         renderCurrent();
     }
 
@@ -44,7 +53,7 @@ public final class FramePlayer extends JPanel {
     public int screenCount() { return ScreenPlanner.screenCount(chunkCount(), gridSize); }
 
     public void setGridSize(int g) {
-        this.gridSize = Math.max(2, Math.min(4, g));
+        this.gridSize = Math.max(2, Math.min(6, g));
         this.screen = Math.min(this.screen, screenCount() - 1);
         renderCurrent();
     }
@@ -56,11 +65,12 @@ public final class FramePlayer extends JPanel {
 
     public String currentLabel() {
         if (manualChunk >= 0) return "块 " + manualChunk;
-        if (screen == 0) return "元数据";
         List<Integer> idx = ScreenPlanner.frameIndexes(screen, chunkCount(), gridSize);
-        int first = idx.get(0) - 1;
-        int last = idx.get(idx.size() - 1) - 1;
-        return "屏 " + screen + "：块 " + first + "~" + last;
+        int first = idx.get(0);
+        int last = idx.get(idx.size() - 1);
+        if (first == 0 && last == 0) return "元数据";           // 空文件：仅元数据
+        if (first == 0) return "屏 " + screen + "：元数据 + 块 0~" + (last - 1);
+        return "屏 " + screen + "：块 " + (first - 1) + "~" + (last - 1);
     }
 
     public void start() { if (!timer.isRunning()) timer.start(); }
@@ -119,12 +129,12 @@ public final class FramePlayer extends JPanel {
         return Math.max(64, (int) (Math.min(getWidth(), getHeight()) * sizeScale));
     }
 
-    /** 网格模式下每格二维码的渲染尺寸（留 10% 间隙，最小 64）。 */
+    /** 网格模式下每格二维码的渲染尺寸（占满格子，静区已内置在二维码图像里，最小 64）。 */
     private int cellSizePx(int count) {
         int[] shape = GridArrangement.shape(count, arrangement);
         int w = getWidth(), h = getHeight();
         int cell = Math.min(w / Math.max(1, shape[1]), h / Math.max(1, shape[0]));
-        return Math.max(64, (int) (cell * 0.9 * sizeScale));
+        return Math.max(64, (int) (cell * sizeScale));
     }
 
     @Override
@@ -133,15 +143,14 @@ public final class FramePlayer extends JPanel {
         if (currentImages == null || currentImages.isEmpty()) return;
         int[] shape = GridArrangement.shape(currentImages.size(), arrangement);
         int rows = shape[0], cols = shape[1];
-        int cellW = getWidth() / cols;
-        int cellH = getHeight() / rows;
+        int qrSize = currentImages.get(0).getWidth();   // 所有图像同尺寸
+        int blockW = cols * qrSize;
+        int blockH = rows * qrSize;
+        int offsetX = (getWidth() - blockW) / 2;
+        int offsetY = (getHeight() - blockH) / 2;
         for (int i = 0; i < currentImages.size(); i++) {
             int r = i / cols, c = i % cols;
-            int imgW = currentImages.get(i).getWidth();
-            int imgH = currentImages.get(i).getHeight();
-            int x = c * cellW + (cellW - imgW) / 2;
-            int y = r * cellH + (cellH - imgH) / 2;
-            g.drawImage(currentImages.get(i), x, y, null);
+            g.drawImage(currentImages.get(i), offsetX + c * qrSize, offsetY + r * qrSize, null);
         }
     }
 }

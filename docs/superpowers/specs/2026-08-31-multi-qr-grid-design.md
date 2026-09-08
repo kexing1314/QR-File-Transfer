@@ -25,20 +25,18 @@
 
 ## 3. 网格模型
 
-引入「屏」（screen）概念，把原来的帧序列 `[METADATA, DATA_0, …, DATA_{N-1}]` 重排为「屏序列」：
+引入「屏」（screen）概念，把帧序列 `[METADATA, DATA_0, …, DATA_{N-1}]` 按 `gridSize` 张一组**均匀切分**（元数据也算一帧，占第一屏第 1 格）：
 
 ```
-屏 0： [METADATA]                                  （单张，居中放大）
-屏 1： [DATA_0, DATA_1]        （gridSize=2）
-       [DATA_0 .. DATA_3]      （gridSize=4）
-屏 k： [DATA_{(k-1)·g} .. DATA_{k·g-1}]
+屏 0： [METADATA, DATA_0, ..., DATA_{g-2}]   （元数据占第 1 格）
+屏 k： [DATA_{k·g-1}, ..., DATA_{(k+1)·g-2}]
 ...
-最后一屏：剩余不足 g 的块（可能 1 ~ g-1 张）
+最后一屏：剩余不足 g 张（可能 1 ~ g-1 张）
 ```
 
-- `gridSize` ∈ {2, 4}，用户可选
-- 屏数 = `1 + ceil(totalChunks / gridSize)`（1 是元数据屏）
-- 屏内块索引顺序：**行优先，从上到下、从左到右**
+- `gridSize` ∈ {2, 4, 6}，用户可选
+- 屏数 = `ceil((totalChunks + 1) / gridSize)`（元数据计入总帧数）
+- 屏内顺序：**行优先，从上到下、从左到右**（元数据仅出现在第一屏第 1 格）
 
 ### 3.1 排列方向（layout）
 
@@ -59,11 +57,11 @@
 | 新增字段 | `int gridSize`（默认 4）、`Layout layout`（默认 SQUARE） |
 | 状态模型 | 由「单帧索引」改为「屏索引」；内存中只持有**当前屏**的 `List<BufferedImage>`（1 或 g 张），其余屏不预渲染（保持懒渲染、内存有界，与原设计一致） |
 | `advance()` | 屏索引 +1（跳过一个屏，而非一块），取模循环 |
-| `renderCurrent()` | 渲染当前屏：元数据屏渲染 1 张；数据屏渲染 g 张（最后一屏按实际剩余块数） |
+| `renderCurrent()` | 渲染当前屏：按 `frameIndexes` 渲染 1~g 张（元数据与数据块一起排，最后一屏按实际剩余张数） |
 | `paintComponent()` | 按 `layout` 把当前屏的多张图排布绘制（横向 1×g / 纵向 g×1 / 方阵 2×2），每张等比缩放到各自格子内、四周留静区 |
 | 新增 API | `setGridSize(int)`、`setLayout(Layout)`：改后立即重渲染当前屏，可传输中实时切换 |
 | 保留 API | `showChunk(int)` / `showMetadata()` **仍渲染单张全屏**（补漏模式，不套网格） |
-| `currentLabel()` | 网格模式返回「屏 X：块 a~b」；单张模式返回「块 N」/「元数据」 |
+| `currentLabel()` | 网格模式返回「屏 X：块 a~b」（第一屏为「元数据 + 块 0~…」）；单张补漏模式返回「块 N」/「元数据」 |
 
 布局枚举建议新增 `Layout`（HORIZONTAL / VERTICAL / SQUARE），独立于 `GridBagLayout`，放在 `ui` 包内。
 

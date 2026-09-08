@@ -26,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MultiQrDecodeTest {
 
+    // 注意：GenericMultipleBarcodeReader 内部有 MAX_DEPTH=4 的硬上限（一次最多解 ~5 个码）。
+    // 因此本测试只覆盖 2×2（4 张）——这是发送端「张数=4」时的稳定场景。
+    // 发送端「张数=6」时每帧可能漏最后 1 个码，属于已知取舍（下一轮循环会补上）。
     @Test
     void decodesAllFourQrsFromTwoByTwoGrid() throws Exception {
         byte[] sha = new byte[32];
